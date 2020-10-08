@@ -1,0 +1,59 @@
+---
+# Get path to Java based on passed default alternative.
+- name: Get default Java path (OpenJDK 7-8)
+  set_fact:
+    java_default_path: /usr/lib/jvm/java-{{ java_default_alternative.version }}-{{ java_default_alternative.provider }}-amd64/jre/bin/java
+  when:
+    java_default_alternative.provider == 'openjdk' and java_default_alternative.version <= 8
+
+- name: Get default Java path (OpenJDK 9+)
+  set_fact:
+    java_default_path: /usr/lib/jvm/java-{{ java_default_alternative.version }}-{{ java_default_alternative.provider }}-amd64/bin/java
+  when:
+    java_default_alternative.provider == 'openjdk' and java_default_alternative.version >= 9
+
+- name: Get default Java path (Oracle Java 14)
+  set_fact:
+    java_default_path: /usr/lib/jvm/java-{{ java_default_alternative.version }}-{{ java_default_alternative.provider }}/bin/java
+  when:
+    java_default_alternative.provider == 'oracle' and java_default_alternative.version == 14
+
+# Set default Java alternative.
+- name: Set default Java
+  alternatives:
+    name: java
+    path: "{{ java_default_path }}"
+  when:
+    java_default_path is defined
+
+# Get path to Java home based on passed default alternative.
+- name: Get Java home path (OpenJDK)
+  set_fact:
+    java_home_path: /usr/lib/jvm/java-{{ java_default_alternative.version }}-{{ java_default_alternative.provider }}-amd64
+  when:
+    java_default_alternative.provider == 'openjdk'
+
+- name: Get Java home path (Oracle Java)
+  set_fact:
+    java_home_path: /usr/lib/jvm/java-{{ java_default_alternative.version }}-{{ java_default_alternative.provider }}
+  when:
+    java_default_alternative.provider == 'oracle'
+
+# Set JAVA_HOME environment variable.
+- name: Get /etc/environment permissions
+  stat:
+    path: /etc/environment
+    get_checksum: false
+    get_mime: false
+  when:
+    java_home_path is defined
+  register: etc_environment_stat
+
+- name: Set JAVA_HOME variable
+  lineinfile:
+    path: /etc/environment
+    regexp: '^JAVA_HOME='
+    line: JAVA_HOME={{ java_home_path }}
+    mode: '{{ etc_environment_stat.stat.mode }}'
+  when:
+    java_home_path is defined

@@ -1,0 +1,23 @@
+---
+# defaults file for java
+# Open JDK version(s) and package type (jre or jdk).
+# Currently supported versions are 6-14 (however not every Java version is
+# supported for every Ubuntu version).
+java_openjdk_packages:
+  - version: 11
+    type: jre
+
+# Oracle Java version(s).
+# Currently supported version is 14.
+java_oracle_packages: []
+#  - version: 14
+
+# Java default alternative. Responsible for setting JAVA_HOME as well.
+java_default_alternative:
+  provider: openjdk
+  version: 11
+
+java_version: "1.8.0"
+java_register_alternative: false
+java_register_env: true
+

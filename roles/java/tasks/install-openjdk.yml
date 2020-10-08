@@ -1,0 +1,22 @@
+---
+# Add the OpenJDK builds PPA. See https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
+- name: Add the OpenJDK builds PPA
+  apt_repository:
+    repo: ppa:openjdk-r/ppa
+    state: present
+    update_cache: true
+    mode: 0644
+
+# Set OpenJDK Java packages to install.
+- name: Set OpenJDK Java packages to install
+  set_fact:
+    java_openjdk_packages_names: "{{ java_openjdk_packages_names | default([]) }} + [ 'openjdk-{{ item.version }}-{{ item.type }}' ]"
+  loop: "{{ java_openjdk_packages }}"
+
+# Install OpenJDK Java.
+- name: Install OpenJDK Java
+  apt:
+    name: "{{ java_openjdk_packages_names }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 86400
