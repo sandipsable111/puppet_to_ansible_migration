@@ -2,43 +2,54 @@
   hosts:  "{{ target }}"
   remote_user: ansible
   gather_facts: yes  
-  become: true
-  
+  become: true  
+ 
   vars:
      user_name: "ansible"     
-     PROCESS: "alhalla-m"     
-     bin_file_path: "{{ master_base_dir }}{{ base_dir }}{{ ansible_bin_files }}"
+     PROCESS: "alhalla-m"        
+     vault_vars: |
+        vault_alhalla_m_alhalla_web_db_user : {{ alhalla_m_alhalla_web_db_user }}
+        vault_alhalla_m_alhalla_web_db_password : {{ alhalla_m_alhalla_web_db_password }}
+        vault_alhalla_m_aux_mdm_db_user: {{ alhalla_m_aux_mdm_db_user }}
+        vault_alhalla_m_aux_mdm_db_password: {{ alhalla_m_aux_mdm_db_password }}
+        vault_alhalla_m_encryption_key: {{ alhalla_m_encryption_key }}
+        vault_alhalla_m_encryption_init_vector: {{ alhalla_m_encryption_init_vector }}
+        vault_alhalla_m_jwt_signing_key : {{ alhalla_m_jwt_signing_key }}
+        vault_alhalla_sendgrid_api_key : {{ alhalla_sendgrid_api_key }}
 
-  vars_files:
-    - ./group_vars/vars.yml
-  
+     #  vars_files:
+          #    - ./group_vars/vars.yml
+      #    - ./group_vars/vault.yml
+ 
   roles:   
        # - java
        # - monit
   tasks:
 
+              
+          # - name: Print some debug information
+          #    vars:
+          #      vault_vars: |
+          #        alhalla_m_alhalla_web_db_user : {{ vault_alhalla_m_alhalla_web_db_user }}
+          #        alhalla_m_alhalla_web_db_password : {{ vault_alhalla_m_alhalla_web_db_password }}
+
+  - debug:
+       msg: "{{ vault_vars.split('\n') }}"
+       verbosity: 1
+       #tags: debug_info
 
   #Create required directories
-  # - name: Create master base  directory
-  # file:
-  #   path: "{{ master_base_dir }}"
-  #   state: directory
-  #   recurse: yes
-  #   group: "{{ user_name }}"
-  #   owner: "{{ user_name }}"
-  
   - name: Create directory to store binaries
     # shell: "mkdir {{ bin_file_path }}"
     file:
-       path: "{{ bin_file_path }}"
+       path: "{{ ansible_bin_files }}"
        state: directory
        group: "{{ user_name }}"
        owner: "{{ user_name }}"   
-        
+     
 
+   #alhalla_m_get_binary
   - name: Clean old binaries
-    #shell: "if tar -tf /tmp/tmp-apache-maven-3.6.3-bin.tar.gz > /dev/null ; then rm -f /opt/orange/tmp-apache-maven-3.6.3-bin.tar.gz;  mv /tmp/tmp-apache-maven-3.6.3-bin.tar.gz /opt/orange ; fi "
-    #shell: " "
     file:
       path: "{{ tarball_location }}/tmp-{{ tarball_name }}"
       state: absent     
@@ -48,44 +59,32 @@
     # - name: Download latest binaries from artifactory
   - name: Downloading dummy tar file from puplic location
     get_url:
-        url: "http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz"
+        url: "{{ artifactory_path }}{{ tarball_name }}"
         dest:  "{{ tarball_tmp_location }}"
         # backup: yes        
 
-  - name: Rename the tar file
-    shell: "mv /tmp/{{ tarball_name }}  /tmp/tmp-{{ tarball_name }} "
+  - name: Rename tar file
+    shell: "mv {{ tarball_tmp_location }}/{{ tarball_name }}  {{ tarball_tmp_location }}/tmp-{{ tarball_name }} "
 
-  - name: Create  installation directory
-    file:
-      path: "{{ bin_file_path }}"
-      state: directory
-      recurse: yes
-  
   - name: Move latest binaries to appropriate location
-    shell: "mv /tmp/tmp-{{tarball_name }} /opt/orange/ "  
+    shell: "mv {{ tarball_tmp_location }}/tmp-{{tarball_name }} {{ master_base_dir }} "  
 
   - debug:
-      msg: "This only displays with ansible-playbook -vv+"
-      verbosity: 2    
+      msg: "This only displays with ansible-playbook -vv:-  alhalla_m_alhalla_web_db_password : {{ alhalla_m_alhalla_web_db_password }}"
+      verbosity: 2
 
-  # Installation
-  - name: Delete base directory 
-    file:
-      path: "{{ master_base_dir }}{{ base_dir }}"
-      state: absent
-    ignore_errors: True
-
-  - name: Extracting downloaded tar file 
-    unarchive:
-        src: "{{ tarball_location }}tmp-{{ tarball_name }}"
-        dest:  "{{ bin_file_path }}"
+  #File in puppet- alhalla_mi_binary
+  - name: Copy tar file to bin file location
+    copy:
+        src: "{{ master_base_dir }}/tmp-{{ tarball_name }}"
+        dest: "{{ ansible_bin_files }}/{{ tarball_name }}"
         remote_src: yes
-        keep_newer: yes
         owner: "{{ user_name }}"
         group: "{{ user_name }}"
-        mode:  "{{ managed_file_mode }}"
+        mode: "{{ managed_file_mode }}"
 
-  - name: Get running processes 
+  #alhalla_m_kill      
+  - name: Get running processes
     shell: "ps -ef | grep -v grep | grep -w {{ PROCESS }} | awk '{print $2}'"
     register: running_processes
     ignore_errors: yes
@@ -107,10 +106,39 @@
     with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
     ignore_errors: yes
 
-  #- name: running
-    
+
+  # Installation
+  - name: Delete old base directory
+    file:
+      path: "{{ base_dir }}"
+      state: absent
+ # ignore_errors: True
+  - name: create new base directory
+    file:
+       path: "{{ base_dir }}"
+       state: directory
+       group: "{{ user_name }}"
+       owner: "{{ user_name }}"
+
+  - name: Unpack binaries
+    shell: "tar -xf {{ ansible_bin_files }}/{{ tarball_name }} -C {{ base_dir }} --strip-components 1 "
+    args:
+       executable: /usr/bin/bash
+       warn: false
+ 
+
+       #  - name: Extracting downloaded tar file 
+       #    unarchive:
+       #        src: "{{ bin_file_path }}/{{ tarball_name }}"
+       #        dest:  "{{ base_dir }}"
+       #        remote_src: yes
+       #        keep_newer: yes
+       #        owner: "{{ user_name }}"
+       #        group: "{{ user_name }}"
+       #        mode:  "{{ managed_file_mode }}"
+       #        extra_opts: [--strip-components=1]
+
+     #- name: running   
   
-  roles:
-          # - java
             
            
