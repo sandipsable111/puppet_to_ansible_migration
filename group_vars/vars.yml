@@ -1,0 +1,54 @@
+---
+# variable file
+tarball_tmp_location: "/tmp" 
+tarball_location: "/opt/orange/"
+tarball_name: "apache-maven-3.6.3-bin.tar.gz"
+managed_file_mode: "700"
+branch:
+revision:
+fe_url:
+alhalla_m_port:
+alhalla_m_legacy_host:
+alhalla_m_legacy_port:
+alhalla_m_environment:
+
+# Enable debug mode to receive more logs
+alhalla_m_enable_debug: true
+
+# Valhalla db configs
+alhalla_m_alhalla_web_db_server:
+alhalla_m_alhalla_web_db_name:
+alhalla_m_alhalla_web_db_user:
+alhalla_m_alhalla_web_db_password:
+
+alhalla_m_aux_mdm_db_server:
+alhalla_m_aux_mdm_db_name:
+alhalla_m_aux_mdm_db_user:
+alhalla_m_aux_mdm_db_password:
+
+# Security Configs
+alhalla_m_encryption_key:
+alhalla_m_encryption_init_vector:
+alhalla_m_jwt_signing_key:
+alhalla_sendgrid_api_key:
+
+# Proxy stuff
+http_proxy_host:
+http_proxy_port:
+https_proxy_host:
+https_proxy_port:
+no_proxy:
+
+#java_opt: "-Denvironment=${alhalla_m_environment} -Dhttp.proxyHost=${http_proxy_host} -Dhttp.proxyPort=${http_proxy_port} -Dhttps.proxyHost=${https_proxy_host} -Dhttps.proxyPort=${https_proxy_port} -Dhttp.nonProxyHosts=\"${no_proxy}\""
+
+#if $alhalla_m_enable_debug {
+ #   $runCmd = "JAVA_HOME=/opt/orange/openjdk11 ALHALLA_M_OPTS='${java_opt}' ./bin/alhalla-m -d"
+#} else {
+#    $runCmd = "JAVA_HOME=/opt/orange/openjdk11 ALHALLA_M_OPTS='${java_opt}' ./bin/alhalla-m"
+#  }
+
+# Directory config
+master_base_dir: "/opt/orange"
+base_dir: "/alhalla-m"
+run_dir: "/alhalla-m-run"
+ansible_bin_files: "/api-binary-files"

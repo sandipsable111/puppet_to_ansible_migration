@@ -1,37 +1,89 @@
-- name: API deployment  
+- name: alhalla_m API deployment  
   hosts:  "{{ target }}"
   remote_user: ansible
   gather_facts: yes  
   become: true
   
   vars:
-     PROCESS: "lala-micro"
+     user_name: "ansible"     
+     PROCESS: "alhalla-m"     
+     bin_file_path: "{{ master_base_dir }}{{ base_dir }}{{ ansible_bin_files }}"
 
+  vars_files:
+    - ./group_vars/vars.yml
+  
+  roles:   
+       # - java
+       # - monit
   tasks:
 
-   #- name: cleaning
-    # shell: "ps -ef | grep -v grep | grep -w ssh | awk '{print $2}'"
-    #register: running_processes
-    #ignore_errors: True   
+
+  #Create required directories
+  # - name: Create master base  directory
+  # file:
+  #   path: "{{ master_base_dir }}"
+  #   state: directory
+  #   recurse: yes
+  #   group: "{{ user_name }}"
+  #   owner: "{{ user_name }}"
+  
+  - name: Create directory to store binaries
+    # shell: "mkdir {{ bin_file_path }}"
+    file:
+       path: "{{ bin_file_path }}"
+       state: directory
+       group: "{{ user_name }}"
+       owner: "{{ user_name }}"   
+        
+
+  - name: Clean old binaries
+    #shell: "if tar -tf /tmp/tmp-apache-maven-3.6.3-bin.tar.gz > /dev/null ; then rm -f /opt/orange/tmp-apache-maven-3.6.3-bin.tar.gz;  mv /tmp/tmp-apache-maven-3.6.3-bin.tar.gz /opt/orange ; fi "
+    #shell: " "
+    file:
+      path: "{{ tarball_location }}/tmp-{{ tarball_name }}"
+      state: absent     
+    ignore_errors: True   
+
+    #Download latest binaries in to {{ tarball_tmp_location }} with 'tmp-' prefix
+    # - name: Download latest binaries from artifactory
+  - name: Downloading dummy tar file from puplic location
+    get_url:
+        url: "http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz"
+        dest:  "{{ tarball_tmp_location }}"
+        # backup: yes        
+
+  - name: Rename the tar file
+    shell: "mv /tmp/{{ tarball_name }}  /tmp/tmp-{{ tarball_name }} "
+
+  - name: Create  installation directory
+    file:
+      path: "{{ bin_file_path }}"
+      state: directory
+      recurse: yes
+  
+  - name: Move latest binaries to appropriate location
+    shell: "mv /tmp/tmp-{{tarball_name }} /opt/orange/ "  
 
   - debug:
       msg: "This only displays with ansible-playbook -vv+"
       verbosity: 2    
-   
-  - name: Creating installation directory
-    file:
-      path: /etc/ExtractedJavaProject/
-      state: directory
 
-  - name: Installing- Unarchive a file that is already on the remote machine
+  # Installation
+  - name: Delete base directory 
+    file:
+      path: "{{ master_base_dir }}{{ base_dir }}"
+      state: absent
+    ignore_errors: True
+
+  - name: Extracting downloaded tar file 
     unarchive:
-        src: /etc/javaProject/apache-maven-3.6.3-bin.tar.gz
-        dest: /etc/ExtractedJavaProject/
+        src: "{{ tarball_location }}tmp-{{ tarball_name }}"
+        dest:  "{{ bin_file_path }}"
         remote_src: yes
         keep_newer: yes
-        owner: ansible
-        group: ansible
-        mode: 700
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode:  "{{ managed_file_mode }}"
 
   - name: Get running processes 
     shell: "ps -ef | grep -v grep | grep -w {{ PROCESS }} | awk '{print $2}'"

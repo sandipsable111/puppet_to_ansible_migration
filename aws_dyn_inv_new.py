@@ -69,7 +69,7 @@ def main():
             host={
                     'hosts': db_group,
                     'vars':  {
-                        'group_name': tagValue+' seerver group',
+                        'group_name': tagValue+' server group',
                         'ansible_user': ansibleUser
                         }
                     }
