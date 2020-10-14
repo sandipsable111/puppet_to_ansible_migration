@@ -4,7 +4,8 @@ tarball_tmp_location: "/tmp"
 tarball_location: "{{ master_base_dir}}/"
 tarball_name: "apache-maven-3.6.3-bin.tar.gz"
 artifactory_path: "http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.3/binaries/"
-managed_file_mode: "700"
+managed_file_mode: "0700"
+managed_conf_file_mode: "0666"
 branch:
 revision:
 fe_url:

@@ -38,6 +38,7 @@
        verbosity: 1
        #tags: debug_info
 
+#INIT
   #Create required directories
   - name: Create directory to store binaries
     # shell: "mkdir {{ bin_file_path }}"
@@ -46,8 +47,10 @@
        state: directory
        group: "{{ user_name }}"
        owner: "{{ user_name }}"   
-     
 
+#INIT ENDs HERE      
+
+#Cleaning Starts       
    #alhalla_m_get_binary
   - name: Clean old binaries
     file:
@@ -106,12 +109,14 @@
     with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
     ignore_errors: yes
 
+# Cleaning Ends here
 
-  # Installation
+# Installation Starts
   - name: Delete old base directory
     file:
       path: "{{ base_dir }}"
       state: absent
+
  # ignore_errors: True
   - name: create new base directory
     file:
@@ -120,13 +125,53 @@
        group: "{{ user_name }}"
        owner: "{{ user_name }}"
 
+  - name: Delete old run  directory
+    file:
+      path: "{{ run_dir }}"
+      state: absent
+       
+  - name: create new run  directory
+    file:
+       path: "{{ run_dir }}"
+       state: directory
+       group: "{{ user_name }}"
+       owner: "{{ user_name }}"
+
+
   - name: Unpack binaries
     shell: "tar -xf {{ ansible_bin_files }}/{{ tarball_name }} -C {{ base_dir }} --strip-components 1 "
     args:
        executable: /usr/bin/bash
        warn: false
  
+  - name: Copy all configuration files to host
+    copy:
+      src: "./conf/alhalla-m/config/"
+      dest: "{{ base_dir }}/conf/"
+      owner: "{{ user_name}}"
+      group: "{{ user_name}}"
+      mode: "{{ managed_file_mode }}"
 
+  - name: Copy all script files to host
+    copy:
+      src: "./conf/alhalla-m/scripts/"
+      dest: "{{ base_dir }}"
+      owner: "{{ user_name}}"
+      group: "{{ user_name}}"
+      mode: "{{ managed_conf_file_mode }}"
+
+  - name: Copy process details  file to host
+    copy:
+      src: "./conf/alhalla-m/process/valhalla_micro.pid"
+      dest: "{{ run_dir }}"
+      owner: "{{ user_name}}"
+      group: "{{ user_name}}"
+      mode: "{{ managed_conf_file_mode }}"
+
+  - name: Read-write git checkout from github
+    git:
+      repo: git@github.com:sandipsable111/alhalla-m_config.git
+      dest: /tmp/
        #  - name: Extracting downloaded tar file 
        #    unarchive:
        #        src: "{{ bin_file_path }}/{{ tarball_name }}"
