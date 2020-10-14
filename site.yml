@@ -118,7 +118,7 @@
       state: absent
 
  # ignore_errors: True
-  - name: create new base directory
+  - name: Create new base directory
     file:
        path: "{{ base_dir }}"
        state: directory
@@ -130,7 +130,7 @@
       path: "{{ run_dir }}"
       state: absent
        
-  - name: create new run  directory
+  - name: Create new run  directory
     file:
        path: "{{ run_dir }}"
        state: directory
@@ -160,7 +160,7 @@
       group: "{{ user_name}}"
       mode: "{{ managed_conf_file_mode }}"
 
-  - name: Copy process details  file to host
+  - name: Copy process details file to host
     copy:
       src: "./conf/alhalla-m/process/valhalla_micro.pid"
       dest: "{{ run_dir }}"
@@ -168,10 +168,19 @@
       group: "{{ user_name}}"
       mode: "{{ managed_conf_file_mode }}"
 
-  - name: Read-write git checkout from github
+
+  - name: Dlete old configuration files downloaded from github
+    file: 
+        path:  "/tmp/alhalla-m_config"
+        state: absent         
+
+  - name: Download updated configuration files from github
     git:
-      repo: git@github.com:sandipsable111/alhalla-m_config.git
-      dest: /tmp/
+       repo: "ssh://git@github.com/sandipsable111/alhalla-m_config.git"
+       key_file: "/home/ansible/.ssh/id_rsa.github"
+       dest: "/tmp/alhalla-m_config"
+  
+  
        #  - name: Extracting downloaded tar file 
        #    unarchive:
        #        src: "{{ bin_file_path }}/{{ tarball_name }}"
