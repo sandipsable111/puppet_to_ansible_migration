@@ -1,5 +1,9 @@
 ---
 # variable file
+#User config variables:
+ssh_user_name: "ansible"
+
+#Directory configurations
 tarball_tmp_location: "/tmp" 
 tarball_location: "{{ master_base_dir}}/"
 tarball_name: "apache-maven-3.6.3-bin.tar.gz"

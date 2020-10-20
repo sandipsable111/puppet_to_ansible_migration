@@ -5,8 +5,8 @@
   become: true  
  
   vars:
-     user_name: "ansible"     
-     PROCESS: "alhalla-m"        
+     user_name: "{{ ssh_user_name }}"     
+     PROCESS: "{{ identifier }}"        
      vault_vars: |
         vault_alhalla_m_alhalla_web_db_user : {{ alhalla_m_alhalla_web_db_user }}
         vault_alhalla_m_alhalla_web_db_password : {{ alhalla_m_alhalla_web_db_password }}
@@ -22,17 +22,11 @@
       #    - ./group_vars/vault.yml
  
   roles:   
-       # - java
+       - java
        # - monit
   tasks:
 
               
-          # - name: Print some debug information
-          #    vars:
-          #      vault_vars: |
-          #        alhalla_m_alhalla_web_db_user : {{ vault_alhalla_m_alhalla_web_db_user }}
-          #        alhalla_m_alhalla_web_db_password : {{ vault_alhalla_m_alhalla_web_db_password }}
-
   - debug:
        msg: "{{ vault_vars.split('\n') }}"
        verbosity: 1
@@ -115,9 +109,8 @@
   - name: Delete old base directory
     file:
       path: "{{ base_dir }}"
-      state: absent
+      state: absent      
 
- # ignore_errors: True
   - name: Create new base directory
     file:
        path: "{{ base_dir }}"
@@ -148,12 +141,8 @@
     args:
        executable: "{{ bash_executable_path }}"
        warn: false
-  # Create configuration files using templates
-  #  - name: Delete old config files main directory
-  #  file:
-  #    path: "{{ api_conf_file_dir }}"
-  #    state: absent
 
+  # Create configuration files using templates
   - name: Create new datasorce config files directory.
     file:
        path: "{{ api_datasources_conf_dir }}"
@@ -189,6 +178,7 @@
         dest: "{{ api_conf_file_dir }}/server.yaml"  
         mode: "{{ managed_conf_file_mode }}"
         force: yes
+
   - name: Do template substitution for secrets.yaml
     template: 
         src: templates/secrets.yaml.j2 
@@ -212,7 +202,7 @@
 
 # Installation End's Here
 
-#Run The API starts    
+#valhalla_micro::run- Run API starts    
        # Configuration file generation using templates
   - name: Generate init.sh file
     template:
@@ -239,23 +229,6 @@
        group: "{{ user_name }}"
        force: yes
 
-
-       # - name: Copy all configuration files to host
-       #copy:
-       #src: "./conf/alhalla-m/config/"
-       #dest: "{{ base_dir }}/conf/"
-       #owner: "{{ user_name}}"
-       #group: "{{ user_name}}"
-       #mode: "{{ managed_file_mode }}"
-
-       # - name: Copy all script files to host
-       #    copy:
-       #      src: "./conf/alhalla-m/scripts/"
-       #      dest: "{{ base_dir }}"
-       #      owner: "{{ user_name}}"
-       #      group: "{{ user_name}}"
-       #      mode: "{{ managed_conf_file_mode }}"
-
   - name: Copy process details file to host
     copy:
       src: "./conf/alhalla-m/process/valhalla_micro.pid"
@@ -265,30 +238,13 @@
       mode: "{{ managed_conf_file_mode }}"
 
 
-  - name: Dlete old configuration files downloaded from github
-    file: 
-        path:  "/tmp/alhalla-m_config"
-        state: absent         
+      # - name: Dlete old configuration files downloaded from github
+      # file: 
+      # path:  "/tmp/alhalla-m_config"
+      #  state: absent         
 
-  - name: Download updated configuration files from github
-    git:
-       repo: "ssh://git@github.com/sandipsable111/alhalla-m_config.git"
-       key_file: "/home/ansible/.ssh/id_rsa.github"
-       dest: "/tmp/alhalla-m_config"
-  
-  
-       #  - name: Extracting downloaded tar file 
-       #    unarchive:
-       #        src: "{{ bin_file_path }}/{{ tarball_name }}"
-       #        dest:  "{{ base_dir }}"
-       #        remote_src: yes
-       #        keep_newer: yes
-       #        owner: "{{ user_name }}"
-       #        group: "{{ user_name }}"
-       #        mode:  "{{ managed_file_mode }}"
-       #        extra_opts: [--strip-components=1]
-
-     #- name: running   
-  
-            
-           
+      #  - name: Download updated configuration files from github
+      #    git:
+      #      repo: "ssh://git@github.com/sandipsable111/alhalla-m_config.git"
+      #      key_file: "/home/ansible/.ssh/id_rsa.github"
+      #    dest: "/tmp/alhalla-m_config"
