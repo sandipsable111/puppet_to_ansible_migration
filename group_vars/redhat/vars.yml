@@ -6,6 +6,7 @@ tarball_name: "apache-maven-3.6.3-bin.tar.gz"
 artifactory_path: "http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.3/binaries/"
 managed_file_mode: "0700"
 managed_conf_file_mode: "0666"
+managed_monit_conf_file_mode: "0400"
 branch:
 revision:
 fe_url:
@@ -18,13 +19,16 @@ alhalla_m_environment:
 alhalla_m_enable_debug: true
 
 # Valhalla db configs
-alhalla_m_alhalla_web_db_server:
-alhalla_m_alhalla_web_db_name: 
+alhalla_m_alhalla_web_db_server: 'web-postgrey-server'
+alhalla_m_alhalla_web_db_name: 'web-postgrey'
+alhalla_m_alhalla_web_db_port: "5432"
 alhalla_m_alhalla_web_db_user: "{{ vault_alhalla_m_alhalla_web_db_user }}"
 alhalla_m_alhalla_web_db_password: "{{ vault_alhalla_m_alhalla_web_db_password }}"
 
-alhalla_m_aux_mdm_db_server:
-alhalla_m_aux_mdm_db_name:
+
+alhalla_m_aux_mdm_db_server: 'aux-mdm-server'
+alhalla_m_aux_mdm_db_name: 'aux-mdm-db'
+
 alhalla_m_aux_mdm_db_user: "{{ vault_alhalla_m_aux_mdm_db_user }}"
 alhalla_m_aux_mdm_db_password: "{{ vault_alhalla_m_aux_mdm_db_password }}"
 
@@ -54,3 +58,26 @@ master_base_dir: "/opt/orange"
 base_dir: "{{ master_base_dir }}/alhalla-m"
 run_dir: "{{ master_base_dir }}/alhalla-m-run"
 ansible_bin_files: "{{ master_base_dir }}/api-binary-files"
+monit_config_dir: "/etc/monit.d"
+bash_executable_path: "/usr/bin/bash"
+api_conf_file_dir: "{{base_dir}}/conf"
+api_datasources_conf_dir: "{{ api_conf_file_dir }}/datasources"
+api_auth_conf_dir: "{{ api_conf_file_dir }}/auth"
+
+
+#Template Configuration
+
+#for init.sh
+
+identifier: "alhalla_m"
+pidfile: "{{ run_dir }}/alhalla_m.pid"
+command: "{{ run_dir }}"
+logfile: "{{ run_dir }}/console.out"
+startWaitTime: 1
+stopWaitTime: 4
+cwd: "{{ base_dir }}"
+
+#monit config
+monit_identifier: "alhalla_m"
+location: "{{base_dir}}/init.sh"
+monit_timeout: 5

@@ -1,0 +1,18 @@
+name: alhalla-datasource
+
+all:
+   - datasource:
+         name: alhalla_web
+         url: jdbc:postgresql://{{ alhalla_m_alhalla_web_db_server }}:{{ alhalla_m_alhalla_web_db_port }}/{{ alhalla_m_alhalla_web_db_name }}
+         driver_class: org.postgresql.Driver
+         user: {{ alhalla_m_alhalla_web_db_user }}
+         password: {{ alhalla_m_alhalla_web_db_password }}
+         max_statements_per_connection: 30
+
+   - datasource:
+         name: aux_mdm
+         url: jdbc:postgresql://{{ alhalla_m_aux_mdm_db_server }}:5432/{{ alhalla_m_aux_mdm_db_name }}
+         driver_class: org.postgresql.Driver
+         user: {{ alhalla_m_aux_mdm_db_user }}
+         password: {{ alhalla_m_aux_mdm_db_password }}
+         max_statements_per_connection: 30

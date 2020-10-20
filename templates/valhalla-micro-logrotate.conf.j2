@@ -1,0 +1,4 @@
+check process {{ monit_identifier }} with pidfile {{ pidfile }}
+  start program = "{{ location }} start"
+  stop program = "{{ location }} stop"
+  if {{ monit_timeout }} restarts within {{ monit_timeout }} cycles then timeout

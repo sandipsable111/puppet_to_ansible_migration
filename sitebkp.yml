@@ -129,13 +129,8 @@
     file:
       path: "{{ run_dir }}"
       state: absent
-
-  - name: Delete old monit config  directory
-    file:
-      path: "{{ monit_config_dir }}"
-      state: absent  
        
-  - name: Create new run directory
+  - name: Create new run  directory
     file:
        path: "{{ run_dir }}"
        state: directory
@@ -146,115 +141,24 @@
   - name: Unpack binaries
     shell: "tar -xf {{ ansible_bin_files }}/{{ tarball_name }} -C {{ base_dir }} --strip-components 1 "
     args:
-       executable: "{{ bash_executable_path }}"
+       executable: /usr/bin/bash
        warn: false
-  # Create configuration files using templates
-  #  - name: Delete old config files main directory
-  #  file:
-  #    path: "{{ api_conf_file_dir }}"
-  #    state: absent
+ 
+  - name: Copy all configuration files to host
+    copy:
+      src: "./conf/alhalla-m/config/"
+      dest: "{{ base_dir }}/conf/"
+      owner: "{{ user_name}}"
+      group: "{{ user_name}}"
+      mode: "{{ managed_file_mode }}"
 
-  - name: Create new datasorce config files directory.
-    file:
-       path: "{{ api_datasources_conf_dir }}"
-       state: directory
-       group: "{{ user_name }}"
-       owner: "{{ user_name }}"
-       recurse: yes
-
-  - name: Create new auth config file directory
-    file:
-       path: "{{ api_auth_conf_dir }}"
-       state: directory
-       group: "{{ user_name }}"
-       owner: "{{ user_name }}"
-
-  - name: Do template substitution for valhalla.yaml
-    template: 
-        src: templates/valhalla.yaml.j2 
-        dest: "{{ api_datasources_conf_dir }}/valhalla.yaml"
-        mode: "{{ managed_conf_file_mode }}"
-        force: yes
-
-  - name: Do template substitution for security.yaml
-    template: 
-        src: templates/security.yaml.j2 
-        dest: "{{ api_conf_file_dir }}/security.yaml"  
-        mode: "{{ managed_conf_file_mode }}"
-        force: yes
-
-  - name: Do template substitution for server.yaml
-    template: 
-        src: templates/server.yaml.j2 
-        dest: "{{ api_conf_file_dir }}/server.yaml"  
-        mode: "{{ managed_conf_file_mode }}"
-        force: yes
-  - name: Do template substitution for secrets.yaml
-    template: 
-        src: templates/secrets.yaml.j2 
-        dest: "{{ api_conf_file_dir }}/secrets.yaml" 
-        mode: "{{ managed_conf_file_mode }}"
-        force: yes
-
-  - name: Do template substitution for oauth.yaml
-    template: 
-        src: templates/oauth.yaml.j2 
-        dest: "{{ api_auth_conf_dir }}/oauth.yaml"  
-        mode: "{{ managed_conf_file_mode }}"
-        force: yes
-  
-  - name: Do template substitution for valhalla-micro-logrotate.conf
-    template: 
-        src: templates/valhalla-micro-logrotate.conf.j2 
-        dest: valhalla_micro-logrotate.conf  
-        mode: "{{ managed_conf_file_mode }}"
-        force: yes
-
-# Installation End's Here
-
-#Run The API starts    
-       # Configuration file generation using templates
-  - name: Generate init.sh file
-    template:
-       src: templates/init.sh.j2
-       dest: "{{ base_dir }}/init.sh"      
-       owner: "{{ user_name }}"
-       group: "{{ user_name }}"
-       mode: "{{ managed_conf_file_mode }}"
-       force: yes
-
-  - name: Create Monit Conf directory
-    file:
-       path: "{{ monit_config_dir }}"
-       state: directory
-       group: "{{ user_name }}"
-       owner: "{{ user_name }}"
-
-  - name: Generate Monit Conf file
-    template:
-       src: templates/monitconfig.conf.j2
-       dest: "{{ monit_config_dir }}/{{ monit_identifier }}.conf"
-       mode: "{{ managed_monit_conf_file_mode }}"
-       owner: "{{ user_name }}"
-       group: "{{ user_name }}"
-       force: yes
-
-
-       # - name: Copy all configuration files to host
-       #copy:
-       #src: "./conf/alhalla-m/config/"
-       #dest: "{{ base_dir }}/conf/"
-       #owner: "{{ user_name}}"
-       #group: "{{ user_name}}"
-       #mode: "{{ managed_file_mode }}"
-
-       # - name: Copy all script files to host
-       #    copy:
-       #      src: "./conf/alhalla-m/scripts/"
-       #      dest: "{{ base_dir }}"
-       #      owner: "{{ user_name}}"
-       #      group: "{{ user_name}}"
-       #      mode: "{{ managed_conf_file_mode }}"
+  - name: Copy all script files to host
+    copy:
+      src: "./conf/alhalla-m/scripts/"
+      dest: "{{ base_dir }}"
+      owner: "{{ user_name}}"
+      group: "{{ user_name}}"
+      mode: "{{ managed_conf_file_mode }}"
 
   - name: Copy process details file to host
     copy:
