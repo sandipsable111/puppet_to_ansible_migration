@@ -46,25 +46,27 @@
 
 #Cleaning Starts       
    #alhalla_m_get_binary
-  - name: Clean old binaries
-    file:
-      path: "{{ tarball_location }}/tmp-{{ tarball_name }}"
-      state: absent     
-    ignore_errors: True   
+   # - name: Clean old binaries
+   #    file:
+   #      path: "{{ tarball_location }}/tmp-{{ tarball_name }}"
+   #      state: absent     
+   #    ignore_errors: True   
 
     #Download latest binaries in to {{ tarball_tmp_location }} with 'tmp-' prefix
     # - name: Download latest binaries from artifactory
-  - name: Downloading dummy tar file from puplic location
-    get_url:
-        url: "{{ artifactory_path }}{{ tarball_name }}"
-        dest:  "{{ tarball_tmp_location }}"
+
+    # - name: Downloading dummy tar file from puplic location
+    #    get_url:
+    #        url: "{{ artifactory_path }}{{ tarball_name }}"
+    #        dest:  "{{ tarball_tmp_location }}"
         # backup: yes        
 
-  - name: Rename tar file
-    shell: "mv {{ tarball_tmp_location }}/{{ tarball_name }}  {{ tarball_tmp_location }}/tmp-{{ tarball_name }} "
+       #  - name: Rename tar file
+    # shell: "cp -f {{ tarball_tmp_location }}/{{ tarball_name }}  {{ tarball_tmp_location }}/tmp-{{ tarball_name }} "
 
   - name: Move latest binaries to appropriate location
-    shell: "mv {{ tarball_tmp_location }}/tmp-{{tarball_name }} {{ master_base_dir }} "  
+    #    shell: "mv {{ tarball_tmp_location }}/tmp-{{tarball_name }} {{ master_base_dir }} "  
+    shell: "cp -f {{ tarball_tmp_location }}/tmp-{{tarball_name }} {{ master_base_dir }} "
 
   - debug:
       msg: "This only displays with ansible-playbook -vv:-  alhalla_m_alhalla_web_db_password : {{ alhalla_m_alhalla_web_db_password }}"
@@ -86,10 +88,24 @@
     register: running_processes
     ignore_errors: yes
 
+  - debug:
+      msg: "Before Killing Running process details: {{ running_processes.stdout_lines }}"
+      verbosity: 2  
+
   - name: Kill running processes
     shell: "kill {{ item }}"
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
+
+  - name: Check  running processes is killed
+    shell: "ps -ef | grep -v grep | grep -w {{ PROCESS }} | awk '{print $2}'"
+    register: running_processes
+    ignore_errors: yes
+
+  - debug:
+      msg: "After killing Running process details: {{ running_processes.stdout_lines }}"
+      verbosity: 2
+
 
   - wait_for:
       path: "/proc/{{ item }}/status"
@@ -236,6 +252,13 @@
       owner: "{{ user_name}}"
       group: "{{ user_name}}"
       mode: "{{ managed_conf_file_mode }}"
+
+  - name: Starting Rest API
+    shell: "nohup {{ java_jar_execution_cmd }} {{ base_dir }}/spring-boot-rest-example-0.5.0.war"
+    register: api_started
+    ignore_errors: yes
+
+          
 
 
       # - name: Dlete old configuration files downloaded from github

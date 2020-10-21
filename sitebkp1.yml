@@ -1,0 +1,250 @@
+- name: alhalla_m API deployment  
+  hosts:  "{{ target }}"
+  remote_user: ansible
+  gather_facts: yes  
+  become: true  
+ 
+  vars:
+     user_name: "{{ ssh_user_name }}"     
+     PROCESS: "{{ identifier }}"        
+     vault_vars: |
+        vault_alhalla_m_alhalla_web_db_user : {{ alhalla_m_alhalla_web_db_user }}
+        vault_alhalla_m_alhalla_web_db_password : {{ alhalla_m_alhalla_web_db_password }}
+        vault_alhalla_m_aux_mdm_db_user: {{ alhalla_m_aux_mdm_db_user }}
+        vault_alhalla_m_aux_mdm_db_password: {{ alhalla_m_aux_mdm_db_password }}
+        vault_alhalla_m_encryption_key: {{ alhalla_m_encryption_key }}
+        vault_alhalla_m_encryption_init_vector: {{ alhalla_m_encryption_init_vector }}
+        vault_alhalla_m_jwt_signing_key : {{ alhalla_m_jwt_signing_key }}
+        vault_alhalla_sendgrid_api_key : {{ alhalla_sendgrid_api_key }}
+
+     #  vars_files:
+          #    - ./group_vars/vars.yml
+      #    - ./group_vars/vault.yml
+ 
+  roles:   
+       - java
+       # - monit
+  tasks:
+
+              
+  - debug:
+       msg: "{{ vault_vars.split('\n') }}"
+       verbosity: 1
+       #tags: debug_info
+
+#INIT
+  #Create required directories
+  - name: Create directory to store binaries
+    # shell: "mkdir {{ bin_file_path }}"
+    file:
+       path: "{{ ansible_bin_files }}"
+       state: directory
+       group: "{{ user_name }}"
+       owner: "{{ user_name }}"   
+
+#INIT ENDs HERE      
+
+#Cleaning Starts       
+   #alhalla_m_get_binary
+  - name: Clean old binaries
+    file:
+      path: "{{ tarball_location }}/tmp-{{ tarball_name }}"
+      state: absent     
+    ignore_errors: True   
+
+    #Download latest binaries in to {{ tarball_tmp_location }} with 'tmp-' prefix
+    # - name: Download latest binaries from artifactory
+  - name: Downloading dummy tar file from puplic location
+    get_url:
+        url: "{{ artifactory_path }}{{ tarball_name }}"
+        dest:  "{{ tarball_tmp_location }}"
+        # backup: yes        
+
+  - name: Rename tar file
+    shell: "mv {{ tarball_tmp_location }}/{{ tarball_name }}  {{ tarball_tmp_location }}/tmp-{{ tarball_name }} "
+
+  - name: Move latest binaries to appropriate location
+    shell: "mv {{ tarball_tmp_location }}/tmp-{{tarball_name }} {{ master_base_dir }} "  
+
+  - debug:
+      msg: "This only displays with ansible-playbook -vv:-  alhalla_m_alhalla_web_db_password : {{ alhalla_m_alhalla_web_db_password }}"
+      verbosity: 2
+
+  #File in puppet- alhalla_mi_binary
+  - name: Copy tar file to bin file location
+    copy:
+        src: "{{ master_base_dir }}/tmp-{{ tarball_name }}"
+        dest: "{{ ansible_bin_files }}/{{ tarball_name }}"
+        remote_src: yes
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: "{{ managed_file_mode }}"
+
+  #alhalla_m_kill      
+  - name: Get running processes
+    shell: "ps -ef | grep -v grep | grep -w {{ PROCESS }} | awk '{print $2}'"
+    register: running_processes
+    ignore_errors: yes
+
+  - name: Kill running processes
+    shell: "kill {{ item }}"
+    with_items: "{{ running_processes.stdout_lines }}"
+    ignore_errors: yes
+
+  - wait_for:
+      path: "/proc/{{ item }}/status"
+      state: absent
+    with_items: "{{ running_processes.stdout_lines }}"
+    ignore_errors: yes
+    register: killed_processes
+
+  - name: Force kill stuck processes
+    shell: "kill -9 {{ item }}"
+    with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
+    ignore_errors: yes
+
+# Cleaning Ends here
+
+# Installation Starts
+  - name: Delete old base directory
+    file:
+      path: "{{ base_dir }}"
+      state: absent      
+
+  - name: Create new base directory
+    file:
+       path: "{{ base_dir }}"
+       state: directory
+       group: "{{ user_name }}"
+       owner: "{{ user_name }}"
+
+  - name: Delete old run  directory
+    file:
+      path: "{{ run_dir }}"
+      state: absent
+
+  - name: Delete old monit config  directory
+    file:
+      path: "{{ monit_config_dir }}"
+      state: absent  
+       
+  - name: Create new run directory
+    file:
+       path: "{{ run_dir }}"
+       state: directory
+       group: "{{ user_name }}"
+       owner: "{{ user_name }}"
+
+
+  - name: Unpack binaries
+    shell: "tar -xf {{ ansible_bin_files }}/{{ tarball_name }} -C {{ base_dir }} --strip-components 1 "
+    args:
+       executable: "{{ bash_executable_path }}"
+       warn: false
+
+  # Create configuration files using templates
+  - name: Create new datasorce config files directory.
+    file:
+       path: "{{ api_datasources_conf_dir }}"
+       state: directory
+       group: "{{ user_name }}"
+       owner: "{{ user_name }}"
+       recurse: yes
+
+  - name: Create new auth config file directory
+    file:
+       path: "{{ api_auth_conf_dir }}"
+       state: directory
+       group: "{{ user_name }}"
+       owner: "{{ user_name }}"
+
+  - name: Do template substitution for valhalla.yaml
+    template: 
+        src: templates/valhalla.yaml.j2 
+        dest: "{{ api_datasources_conf_dir }}/valhalla.yaml"
+        mode: "{{ managed_conf_file_mode }}"
+        force: yes
+
+  - name: Do template substitution for security.yaml
+    template: 
+        src: templates/security.yaml.j2 
+        dest: "{{ api_conf_file_dir }}/security.yaml"  
+        mode: "{{ managed_conf_file_mode }}"
+        force: yes
+
+  - name: Do template substitution for server.yaml
+    template: 
+        src: templates/server.yaml.j2 
+        dest: "{{ api_conf_file_dir }}/server.yaml"  
+        mode: "{{ managed_conf_file_mode }}"
+        force: yes
+
+  - name: Do template substitution for secrets.yaml
+    template: 
+        src: templates/secrets.yaml.j2 
+        dest: "{{ api_conf_file_dir }}/secrets.yaml" 
+        mode: "{{ managed_conf_file_mode }}"
+        force: yes
+
+  - name: Do template substitution for oauth.yaml
+    template: 
+        src: templates/oauth.yaml.j2 
+        dest: "{{ api_auth_conf_dir }}/oauth.yaml"  
+        mode: "{{ managed_conf_file_mode }}"
+        force: yes
+  
+  - name: Do template substitution for valhalla-micro-logrotate.conf
+    template: 
+        src: templates/valhalla-micro-logrotate.conf.j2 
+        dest: valhalla_micro-logrotate.conf  
+        mode: "{{ managed_conf_file_mode }}"
+        force: yes
+
+# Installation End's Here
+
+#valhalla_micro::run- Run API starts    
+       # Configuration file generation using templates
+  - name: Generate init.sh file
+    template:
+       src: templates/init.sh.j2
+       dest: "{{ base_dir }}/init.sh"      
+       owner: "{{ user_name }}"
+       group: "{{ user_name }}"
+       mode: "{{ managed_conf_file_mode }}"
+       force: yes
+
+  - name: Create Monit Conf directory
+    file:
+       path: "{{ monit_config_dir }}"
+       state: directory
+       group: "{{ user_name }}"
+       owner: "{{ user_name }}"
+
+  - name: Generate Monit Conf file
+    template:
+       src: templates/monitconfig.conf.j2
+       dest: "{{ monit_config_dir }}/{{ monit_identifier }}.conf"
+       mode: "{{ managed_monit_conf_file_mode }}"
+       owner: "{{ user_name }}"
+       group: "{{ user_name }}"
+       force: yes
+
+  - name: Copy process details file to host
+    copy:
+      src: "./conf/alhalla-m/process/valhalla_micro.pid"
+      dest: "{{ run_dir }}"
+      owner: "{{ user_name}}"
+      group: "{{ user_name}}"
+      mode: "{{ managed_conf_file_mode }}"
+
+
+      # - name: Dlete old configuration files downloaded from github
+      # file: 
+      # path:  "/tmp/alhalla-m_config"
+      #  state: absent         
+
+      #  - name: Download updated configuration files from github
+      #    git:
+      #      repo: "ssh://git@github.com/sandipsable111/alhalla-m_config.git"
+      #      key_file: "/home/ansible/.ssh/id_rsa.github"
+      #    dest: "/tmp/alhalla-m_config"

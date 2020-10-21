@@ -4,9 +4,11 @@
 ssh_user_name: "ansible"
 
 #Directory configurations
-tarball_tmp_location: "/tmp" 
+#tarball_tmp_location: "/tmp" 
+tarball_tmp_location: "/opt/tarballFile"
 tarball_location: "{{ master_base_dir}}/"
-tarball_name: "apache-maven-3.6.3-bin.tar.gz"
+#tarball_name: "apache-maven-3.6.3-bin.tar.gz"
+tarball_name: "rest-api.tar.gz"
 artifactory_path: "http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.3/binaries/"
 managed_file_mode: "0700"
 managed_conf_file_mode: "0666"
@@ -68,6 +70,7 @@ api_conf_file_dir: "{{base_dir}}/conf"
 api_datasources_conf_dir: "{{ api_conf_file_dir }}/datasources"
 api_auth_conf_dir: "{{ api_conf_file_dir }}/auth"
 
+java_jar_execution_cmd : "java -jar -Dspring.profiles.active=test"
 
 #Template Configuration
 
