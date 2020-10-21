@@ -254,7 +254,7 @@
       mode: "{{ managed_conf_file_mode }}"
 
   - name: Starting Rest API
-    shell: "nohup {{ java_jar_execution_cmd }} {{ base_dir }}/spring-boot-rest-example-0.5.0.war"
+    shell: "nohup {{ java_jar_execution_cmd }} {{ base_dir }}/spring-boot-rest-example-0.5.0.war >> nohup.out 2>&1 &"     
     register: api_started
     ignore_errors: yes
 
