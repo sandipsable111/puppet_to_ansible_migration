@@ -76,7 +76,8 @@ java_jar_execution_cmd : "java -jar -Dspring.profiles.active=test"
 
 #for init.sh
 
-identifier: "alhalla_m"
+#identifier: "alhalla_m"
+identifier: "spring-boot-rest-example"
 pidfile: "{{ run_dir }}/alhalla_m.pid"
 command: "{{ run_dir }}"
 logfile: "{{ run_dir }}/console.out"
