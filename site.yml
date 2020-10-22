@@ -23,13 +23,13 @@
  
   roles:   
        - java
-       # - monit
+       - monit
   tasks:
 
               
   - debug:
        msg: "{{ vault_vars.split('\n') }}"
-       verbosity: 1
+       verbosity: 3
        #tags: debug_info
 
 #INIT
@@ -70,7 +70,7 @@
 
   - debug:
       msg: "This only displays with ansible-playbook -vv:-  alhalla_m_alhalla_web_db_password : {{ alhalla_m_alhalla_web_db_password }}"
-      verbosity: 2
+      verbosity: 3
 
   #File in puppet- alhalla_mi_binary
   - name: Copy tar file to bin file location
@@ -254,7 +254,7 @@
       mode: "{{ managed_conf_file_mode }}"
 
   - name: Starting Rest API
-    shell: "nohup {{ java_jar_execution_cmd }} {{ base_dir }}/spring-boot-rest-example-0.5.0.war >> nohup.out 2>&1 & "
+    shell: "nohup {{ java_jar_execution_cmd }} {{ base_dir }}/spring-boot-rest-example-0.5.0.war >> nohup.out 2>&1 &"     
     register: api_started
     ignore_errors: yes
 

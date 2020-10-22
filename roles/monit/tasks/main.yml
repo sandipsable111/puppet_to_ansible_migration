@@ -1,0 +1,7 @@
+---
+#- name: Lookup OS specific variables
+# include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Run OS specific tasks
+  include: "setup-{{ ansible_os_family }}.yml"
+

@@ -1,0 +1,8 @@
+set httpd port 2812 and use the address localhost
+allow localhost
+
+# set daemon mode timeout to 1 minute
+set daemon 60
+# Include all files from /etc/monit.d/
+include /etc/monit.d/*
+
