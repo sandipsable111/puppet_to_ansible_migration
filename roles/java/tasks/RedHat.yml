@@ -1,14 +1,7 @@
-#- name: Install RedHat OS packages
-# yum: 
-#    name: "{{item}}"
-#    state: present
-# with_items:
-#         # - "java-1.{{java_version}}.0-openjdk-devel"
-#   - "java-{{java_version}}-openjdk-devel"
-
-- name: install libselinux-python package if we need to register env vars
+- name: Install RedHat OS packages
   yum: 
-    name: libselinux-python 
-    state: present
-  when: java_register_env
-  ignore_errors: true
+     name: "{{item}}"
+     state: present
+  with_items:
+   - "java-{{java_version}}-openjdk-devel"
+
