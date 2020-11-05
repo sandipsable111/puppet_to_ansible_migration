@@ -18,6 +18,6 @@ java_default_alternative:
   version: 11
 
 java_version: "1.8.0"
-java_register_alternative: false
+java_register_alternative: true
 java_register_env: true
 

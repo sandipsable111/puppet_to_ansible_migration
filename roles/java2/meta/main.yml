@@ -1,0 +1,28 @@
+---
+galaxy_info:
+  role_name: java
+  author: Tomoyuki Sakurai
+  description: Installs and configures Java (JDK or JRE)
+  company: N/A
+  license: BSD
+  min_ansible_version: 2.0
+  platforms:
+    - name: FreeBSD
+      versions:
+        - 11.4
+        - 12.1
+    - name: OpenBSD
+      versions:
+        - 6.6
+        - 6.7
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
+    - name: EL
+      versions:
+        - 7
+
+  galaxy_tags:
+    - java
+dependencies: []

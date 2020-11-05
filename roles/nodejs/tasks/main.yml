@@ -1,0 +1,41 @@
+---
+# tasks file for install_nodejs
+
+- name: Install dependencies
+  yum:
+    update_cache: yes
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - "@Development tools"
+    - openssl-devel
+  become: yes
+
+- name: Download install script
+  get_url:
+    url: 'https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh'
+    dest: ~/
+  become: yes
+  become_user: '{{ user_name }}'
+
+- name: Run the nvm script
+  shell: bash ~/install.sh && source ~/.bash_profile
+  args:
+    executable: /bin/bash
+  become: yes
+  become_user: '{{ user_name }}'
+
+- name: Copy source file
+  copy:
+    src: files/path.sh
+    dest: ~/
+  become: yes
+  become_user: '{{ user_name }}'
+
+- name: Source nvm
+  shell: source ~/path.sh && nvm ls-remote && nvm install {{ node_version }}
+  args:
+    executable: /bin/bash
+  become: yes
+  become_user: '{{ user_name }}'
+

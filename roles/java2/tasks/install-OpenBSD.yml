@@ -1,0 +1,6 @@
+---
+
+- name: Install java
+  openbsd_pkg:
+    name: "{{ java_packages }}"
+    state: present

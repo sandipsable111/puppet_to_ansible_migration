@@ -1,0 +1,39 @@
+---
+
+- name: Insure Required Packages Are Installed
+  package:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - unzip
+    - tar
+    - wget
+
+- name: Create Groovy Base Directory
+  file:
+    path: "{{ groovy_base }}"
+    state: directory
+    owner: "{{ groovy_owner }}"
+    group: "{{ groovy_group }}"
+
+- name: Unarchive Groovy zip
+  unarchive:
+    src: "{{ groovy_download }}"
+    creates: "{{ groovy_directory }}"
+    dest: "{{ groovy_base }}"
+    validate_certs: yes
+    remote_src: yes
+
+- name: Create Link To Current Version
+  file:
+    path: "{{ groovy_home }}"
+    src: "{{ groovy_directory }}"
+    state: link
+    owner: "{{ groovy_owner }}"
+    group: "{{ groovy_group }}"
+
+- name: Set Groovy Home Environmental Variables
+  template:
+    src: groovy_home.sh.j2
+    dest: "/etc/profile.d/{{ groovy_home_script_name }}"
+

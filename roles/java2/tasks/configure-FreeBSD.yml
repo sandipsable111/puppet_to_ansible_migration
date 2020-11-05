@@ -1,0 +1,17 @@
+---
+
+- name: Mount proc
+  mount:
+    name: /proc
+    fstype: procfs
+    src: proc
+    opts: rw
+    state: mounted
+
+- name: Mount fdesc
+  mount:
+    name: /dev/fd
+    fstype: fdescfs
+    src: fdesc
+    opts: rw
+    state: mounted

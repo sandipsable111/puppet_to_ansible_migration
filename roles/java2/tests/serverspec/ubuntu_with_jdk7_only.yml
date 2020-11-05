@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  roles:
+    - ansible-role-java
+  vars:
+    java_packages:
+      - openjdk-7-jdk

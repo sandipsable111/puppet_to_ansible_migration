@@ -1,0 +1,36 @@
+---
+# file: oracle-java/tests/test.yml
+
+- name: setup python2
+  hosts: "{{ vagrant_box }}"
+  gather_facts: no
+
+  tasks:
+    - raw: sudo apt-get update -qq && sudo apt-get install -qq python2.7
+      when: playbook_python2 is defined and
+            playbook_python2
+      changed_when: false
+
+- name: setup stretch
+  hosts: "{{ vagrant_box }}"
+
+  tasks:
+    - apt:
+        name=software-properties-common
+        state=present
+        become=yes
+      when: ansible_distribution | lower == 'stretch'
+
+- name: tests play
+  hosts: all
+  gather_facts: yes
+  vars:
+    debug: yes
+    test_expected_java_version: '12.0.1'
+
+  roles:
+    - role: oracle-java
+
+    - role: tests
+      expected_java_version: "{{ test_expected_java_version }}"
+      tags: [ test ]

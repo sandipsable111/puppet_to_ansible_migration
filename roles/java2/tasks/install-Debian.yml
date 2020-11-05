@@ -1,0 +1,28 @@
+---
+
+- name: See if the license is accepted
+  shell: debconf-show oracle-java8-installer
+  changed_when: false
+  register: register_debconf_show
+
+- name: Set accepted-oracle-license-v1-1 to true
+  shell: echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections
+  when:
+    - "'oracle-java8-installer' in java_packages"
+    - "not '* shared/accepted-oracle-license-v1-1: true' in register_debconf_show.stdout_lines"
+  with_items: "{{ java_packages }}"
+
+- name: Do workaround Debian bug 863888
+  # https://github.com/reallyenglish/ansible-role-java/issues/24
+  # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=863888
+  apt:
+    name: ca-certificates-java
+    default_release: jessie-backports
+    state: present
+  when:
+    - ansible_distribution == 'Debian'
+
+- name: Install Java
+  apt:
+    name: "{{ java_packages }}"
+    state: present

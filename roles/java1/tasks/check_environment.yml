@@ -1,0 +1,46 @@
+---
+# file: oracle-java/tasks/check_environment.yml
+#
+# task to set host facts:
+#   - Java is installed?
+#   - which Java version is installed?
+#
+
+- name: determine if Java is already installed
+  command: which java
+  register: oracle_java_task_installed
+  changed_when: oracle_java_task_installed.rc != 0
+  failed_when: no
+# oracle_java_installed.rc == 0 : installed
+# oracle_java_installed.rc == 1 : not installed
+
+- name: set fact oracle_java_installed
+  set_fact:
+    oracle_java_installed={{ not oracle_java_task_installed.changed }}
+
+- name: determine which Java version is installed
+  shell: |
+    set -o pipefail |
+    java -version 2>&1 |
+    head -n 1 |
+    awk '{ print $3 }' |
+    awk -F '"' '{ print $2 }'
+  register: oracle_java_task_version
+  when: oracle_java_installed
+  changed_when: False
+
+- name: set fact oracle_java_installed_version
+  set_fact:
+    oracle_java_version_installed="{{ oracle_java_task_version.stdout }}"
+  when: oracle_java_task_version is defined and oracle_java_task_version.stdout is defined
+  changed_when: False
+
+- debug:
+    var="{{ item }}"
+  when: item is defined and debug | default(false)
+  with_items:
+    - oracle_java_installed
+    - oracle_java_task_installed
+    - oracle_java_task_version
+    - oracle_java_version_installed
+  tags: [ debug ]

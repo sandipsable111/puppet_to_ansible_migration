@@ -1,0 +1,2 @@
+---
+java_packages: "{{ __java_packages }}"

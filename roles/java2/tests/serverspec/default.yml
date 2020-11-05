@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  roles:
+    - role: trombik.apt_repo
+      when: ansible_os_family == 'Debian'
+    - role: ansible-role-java
+  vars:
+    os_java_packages:
+      FreeBSD:
+        - java/openjdk13
+      RedHat:
+        - java-1.8.0-openjdk
+        - java-1.8.0-openjdk-devel
+      OpenBSD:
+        - jdk--%11
+      Debian:
+        - openjdk-8-jdk
+    java_packages: "{{ os_java_packages[ansible_os_family] }}"

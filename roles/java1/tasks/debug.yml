@@ -1,0 +1,20 @@
+---
+# file: oracle-java/tasks/debug.yml
+#
+# Task that prints variable debug information.
+#
+
+- debug:
+    var="{{ item }}"
+  when: item is defined
+  with_items:
+    - oracle_java_cache_valid_time
+    - oracle_java_home
+    - oracle_java_installed
+    - oracle_java_apt_repository
+    - oracle_java_apt_repository_key
+    - oracle_java_license_version
+    - oracle_java_set_as_default
+    - oracle_java_state
+    - oracle_java_version_installed
+    - oracle_java_version_string

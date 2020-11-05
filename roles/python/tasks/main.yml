@@ -1,0 +1,8 @@
+---
+- name: Install Python and pip
+  yum:
+    name:
+      - python36
+      - python36-pip
+      - python-pip
+    state: present

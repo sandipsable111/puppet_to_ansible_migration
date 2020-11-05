@@ -1,0 +1,11 @@
+---
+# tasks file for ansible-role-java
+
+- include_vars: "{{ ansible_os_family }}.yml"
+
+- include_vars: "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+  when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+- include: "install-{{ ansible_os_family }}.yml"
+
+- include: "configure-{{ ansible_os_family }}.yml"

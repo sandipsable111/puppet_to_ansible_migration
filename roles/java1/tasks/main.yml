@@ -1,0 +1,37 @@
+---
+# file: oracle-java/tasks/main.yml
+#
+# tasks file
+#
+
+## include OS family specific variables
+
+- name: include OS family/distribution specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ role_path }}/defaults/{{ ansible_os_family | lower }}-{{ ansible_distribution | lower }}.yml"
+    - "{{ role_path }}/defaults/{{ ansible_os_family | lower }}.yml"
+  when: oracle_java_use_defaults
+  tags: [ installation ]
+
+## run
+
+- name: check host environment
+  include: check_environment.yml
+
+- include: debug.yml
+  when: debug | default(false)
+  tags: [ debug ]
+
+## include OS family/distribution specific task file
+
+- name: include OS family/distribution specific task file
+  include: "{{ item }}"
+  with_first_found:
+    - "installation/{{ ansible_os_family | lower }}/{{ ansible_distribution | lower }}_{{ ansible_distribution_version | lower }}.yml"
+    - "installation/{{ ansible_os_family | lower }}/{{ ansible_distribution | lower }}.yml"
+    - "installation/{{ ansible_os_family | lower }}/main.yml"
+  tags: [ installation ]
+
+- name: check host environment
+  include: check_environment.yml

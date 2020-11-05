@@ -1,0 +1,6 @@
+---
+
+- name: Restart java
+  service:
+    name: java
+    state: restarted
