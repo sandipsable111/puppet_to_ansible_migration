@@ -8,10 +8,11 @@
           name: nginx
           state: installed
           update_cache: true
-        
-      - name: Copy nginx files
-        copy:
-          src: "{{ role_path }}/files/nginx.conf"
-          dest: /etc/nginx/nginx.conf
-          mode: 0644
         notify: Restart Nginx
+        
+          # - name: Copy nginx files
+          #        copy:
+          #          src: "{{ role_path }}/files/nginx.conf"
+          #          dest: /etc/nginx/nginx.conf
+          #          mode: 0644
+          #        notify: Restart Nginx
