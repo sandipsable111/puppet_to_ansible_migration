@@ -29,4 +29,5 @@ java_extra_package_requirements: []
 #Java 8 installation on Red Hat os
 java_base_path: "/usr/lib/jvm"
 java_libjvm_symlink_path: "/usr/lib/libjvm.so"
+#java_version: "1.8.0"
 java_version: "11"

@@ -37,3 +37,6 @@
         state: present
         line: "export PATH=$JAVA_HOME/bin:$PATH"
   when: java_register_env
+
+- name: Refresh env variables
+  shell: "source /etc/profile" 
