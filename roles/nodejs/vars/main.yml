@@ -2,6 +2,6 @@
 # vars file for install_nodejs
 
 node_version: 0.12.7
-user_name: ec2-user
+user_name: "{{ ssh_user_name }}"
 
 
