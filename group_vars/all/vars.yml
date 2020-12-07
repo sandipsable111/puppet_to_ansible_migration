@@ -5,6 +5,7 @@ tarball_location: "{{ master_base_dir}}/"
 tarball_name: "apache-maven-3.6.3-bin.tar.gz"
 artifactory_path: "http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.3/binaries/"
 managed_file_mode: "700"
+artifact_password: "{{ lookup('aws_ssm', 'artifact_password', region='ap-southeast-1' ) }}"
 branch:
 revision:
 fe_url:
@@ -18,10 +19,11 @@ alhalla_m_enable_debug: true
 
 # Valhalla db configs
 alhalla_m_alhalla_web_db_server:
-alhalla_m_alhalla_web_db_name: 
-alhalla_m_alhalla_web_db_user: "{{ vault_alhalla_m_alhalla_web_db_user }}"
-alhalla_m_alhalla_web_db_password: "{{ vault_alhalla_m_alhalla_web_db_password }}"
-
+alhalla_m_alhalla_web_db_name:
+sendgrid_api_key: "{{ lookup('aws_ssm', 'sendgrid_api_key', region='ap-southeast-1' ) }}"
+ssh_user_name: "{{ lookup('aws_ssm', 'ssh_user_name', region='ap-southeast-1' ) }}"
+valhalla_micro_valhalla_web_db_user: "{{ lookup('aws_ssm', 'web_db_user', region='ap-southeast-1' ) }}"
+valhalla_micro_valhalla_web_db_password: "{{ lookup('aws_ssm', 'web_db_password', region='ap-southeast-1' ) }}"
 alhalla_m_aux_mdm_db_server:
 alhalla_m_aux_mdm_db_name:
 alhalla_m_aux_mdm_db_user: "{{ vault_alhalla_m_aux_mdm_db_user }}"

@@ -1,0 +1,29 @@
+---
+- name: valhalla_micro API deployment  
+  hosts:  "{{ target }}"
+  remote_user: sandip
+  gather_facts: yes  
+  become: true  
+  connection: local  
+             
+  vars:
+      user_name: sandip     
+                                
+                            
+
+                                  
+  tasks:
+  - name: Read secrets from  ssm using lookup plugin
+    debug: 
+        msg: "{{ lookup('aws_ssm', 'db_name', region='ap-southeast-1' ) }}"
+
+
+  - name: read database secrets from SSM parameters 
+    debug:
+        msg: 
+                - " SHH user name: {{ ssh_user_name }}"
+                - "Artifact Pass: {{ artifact_password }}"
+                - "DB user name: {{ valhalla_micro_valhalla_web_db_user  }}"
+                - "DB Password: {{ valhalla_micro_valhalla_web_db_password }}"
+                - "API key Encrypted by KMS: {{ sendgrid_api_key }}"
+
