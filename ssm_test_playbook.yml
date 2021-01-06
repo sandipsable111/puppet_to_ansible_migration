@@ -15,7 +15,10 @@
   tasks:
   - name: Read secrets from  ssm using lookup plugin
     debug: 
-        msg: "{{ lookup('aws_ssm', 'db_name', region='ap-southeast-1' ) }}"
+      msg: "{{ item }}"
+    with_items:
+      - "{{ lookup('aws_ssm', 'PROD-DB_PASS', region='ap-southeast-1' ) }}"
+      - "{{ lookup('aws_ssm', 'PROD-DB-DEVOPS-ADMIN-PASS', region='ap-southeast-1' ) }}"
 
 
   - name: read database secrets from SSM parameters 
